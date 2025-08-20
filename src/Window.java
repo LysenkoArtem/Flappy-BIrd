@@ -2,6 +2,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.util.ArrayList;
 
 import javax.swing.JPanel;
 
@@ -11,6 +12,8 @@ class Window extends JPanel implements Runnable{
 
     int FPS = 40;
 
+    boolean isGameOver = false;
+    boolean isGamePaused = false;
 
     Thread thread;
 
@@ -18,6 +21,7 @@ class Window extends JPanel implements Runnable{
 
     KeyboardListner kbl = new KeyboardListner();
 
+    ArrayList<Obstacle> obstacles = new ArrayList<>();
 
     public Window() {
         this.setPreferredSize(new Dimension(width, height));
@@ -27,6 +31,8 @@ class Window extends JPanel implements Runnable{
         this.addKeyListener(kbl);
         this.setFocusable(true);
 
+        obstacles.add(new Obstacle());
+
     }
 
     public void startThread() {
@@ -34,21 +40,73 @@ class Window extends JPanel implements Runnable{
         thread.start();
     }
 
+    private boolean isCollide(Obstacle obst) {
+        if (bird.x+bird.syze >= obst.x && bird.x <= obst.x+obst.width){
+            if (bird.y <= obst.top || bird.y+bird.syze >= obst.bottom) {return true;}
+        }
+        return false;
+    }
+
+    private void checkCollision() {
+        for (Obstacle obst: obstacles) {
+            if (isCollide(obst)) {isGameOver = true;}
+        }
+    }
+
+    private void updateObstacles() {
+        for (Obstacle obst: obstacles) {
+            obst.update();
+        }
+        obstacles.removeIf(obst -> obst.x+obst.width < 0);
+
+        if (800 - obstacles.getLast().x >= 300) {obstacles.add(new Obstacle());}
+    }
+    
+    private void paintObstacles(Graphics2D g) {
+        
+        for (Obstacle obst: obstacles) {
+            obst.paint(g);
+        }
+    }
+
+    private void restart() {
+        isGameOver = false;
+        bird = new Bird();
+        obstacles = new ArrayList<>();
+        obstacles.add(new Obstacle());
+
+
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
         Graphics2D g2 = (Graphics2D) g;
+        paintObstacles(g2);
         bird.paint(g2);
 
     }
 
     private void update() {
-        if (kbl.is_pressed) {
+        if (isGameOver){
+            if (kbl.is_pressed) {
+                restart();
+                kbl.is_pressed = false;
+            }
+        }
+        else {
+            if (kbl.is_pressed) {
             bird.jump();
             kbl.is_pressed = false;
+            }
+
+            bird.update();
+            updateObstacles();
+
+            checkCollision();
+            if (bird.y > height) {isGameOver = true;}
         }
-        bird.update();
     }
 
 	@Override
