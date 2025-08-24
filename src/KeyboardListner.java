@@ -3,7 +3,8 @@ import java.awt.event.KeyListener;
 
 class KeyboardListner implements KeyListener {
     
-    boolean is_pressed = false;
+    boolean isSpacePressed = false;
+    boolean isEscPressed = false;
 
 	@Override
 	public void keyTyped(KeyEvent e) {
@@ -12,12 +13,15 @@ class KeyboardListner implements KeyListener {
 	@Override
 	public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-            is_pressed = true;
+            isSpacePressed = true;
         }
 	}
 
 	@Override
 	public void keyReleased(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+           isEscPressed = true; 
+        }
 	}
 
 }

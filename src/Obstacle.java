@@ -11,11 +11,17 @@ class Obstacle {
 
     Color color = new Color(60, 175, 0);
 
+    boolean isPassed = false;
+
     public Obstacle() {
         Random r = new Random();
 
         top = r.nextInt(80, 300);
         bottom = top + 220;
+    }
+
+    public void pass() {
+        isPassed = true;
     }
 
     public void update() {

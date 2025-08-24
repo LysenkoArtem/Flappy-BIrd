@@ -18,6 +18,7 @@ class Window extends JPanel implements Runnable{
     Thread thread;
 
     Bird bird = new Bird();
+    Scoreboard scoreboard = new Scoreboard();
 
     KeyboardListner kbl = new KeyboardListner();
 
@@ -49,13 +50,24 @@ class Window extends JPanel implements Runnable{
 
     private void checkCollision() {
         for (Obstacle obst: obstacles) {
-            if (isCollide(obst)) {isGameOver = true;}
+            if (isCollide(obst)) {
+                isGameOver = true;
+            }
         }
+    }
+
+    private boolean isObstaclePassed(Obstacle obst) {
+        return (!obst.isPassed && obst.x+obst.width <= bird.x) ;
+        
     }
 
     private void updateObstacles() {
         for (Obstacle obst: obstacles) {
             obst.update();
+            if (isObstaclePassed(obst)) {
+                scoreboard.scoreUp();
+                obst.pass();
+            }
         }
         obstacles.removeIf(obst -> obst.x+obst.width < 0);
 
@@ -71,9 +83,11 @@ class Window extends JPanel implements Runnable{
 
     private void restart() {
         isGameOver = false;
+        isGamePaused = false;
         bird = new Bird();
         obstacles = new ArrayList<>();
         obstacles.add(new Obstacle());
+        scoreboard.clearScore();
 
 
     }
@@ -85,20 +99,34 @@ class Window extends JPanel implements Runnable{
         Graphics2D g2 = (Graphics2D) g;
         paintObstacles(g2);
         bird.paint(g2);
+        scoreboard.paint(g2);
 
     }
 
     private void update() {
         if (isGameOver){
-            if (kbl.is_pressed) {
+            if (kbl.isSpacePressed) {
                 restart();
-                kbl.is_pressed = false;
+                kbl.isSpacePressed = false;
+                kbl.isEscPressed = false;
+
             }
         }
+        else if (isGamePaused) {
+            if (kbl.isEscPressed) {
+                isGamePaused = false;
+                kbl.isEscPressed = false;
+            }
+
+        }
         else {
-            if (kbl.is_pressed) {
-            bird.jump();
-            kbl.is_pressed = false;
+            if (kbl.isSpacePressed) {
+                bird.jump();
+                kbl.isSpacePressed = false;
+            }
+            if (kbl.isEscPressed) {
+                isGamePaused = true;
+                kbl.isEscPressed = false;
             }
 
             bird.update();
@@ -127,11 +155,6 @@ class Window extends JPanel implements Runnable{
                 repaint();
                 delta--;
             }
-
         }
-
 	}
-
-    
-
 }
